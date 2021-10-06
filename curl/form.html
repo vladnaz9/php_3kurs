@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3</title>
+    <style type="text/css">
+        textarea[name="FIO"] {
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1> Добро пожаловать, отправьте эссе на свободную тему </h1>
+<br>
+<form action="../curl/UseCurl.php" method="post">
+    <div id="string"></div>
+    <form>
+
+        <label>
+            <textarea required placeholder="Здесь должно быть ваше Эссе"  autofocus name="string" cols="40" rows="9"></textarea>
+        </label>
+        <br><br>
+        <label>
+            <textarea required placeholder="Введите ваше ФИО"  name="FIO" cols="30"
+                      rows="1"></textarea>
+        </label>
+        <div class="button">
+            <input type="submit" name="go" value="отправить">
+        </div>
+    </form>
+</form>
+</body>
+</html>
