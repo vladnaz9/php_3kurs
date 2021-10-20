@@ -3,7 +3,7 @@
 class Renderer {
     public static function render(string $template, array $content = []):string {
 
-        $template = "from_pares/app/templates/_".$template.".phtml";
+        $template = "php_3kurs/app/templates/_".$template.".phtml";
         ob_start();
         require $template;
         $result = ob_get_contents();

@@ -8,101 +8,106 @@ if (isset($_REQUEST["url"])) {
         require_once 'php_3kurs/app/classes/' . $className . '.inc';
     });
 
-    function parse(UriDB $uridb, int $parentId, int $deep = 2)
+    function parse(UriDB $uridb, int $parentId, int $deep )
     {
-        if ($deep == 1) {
+        if ($deep == 0) {
             return;
         }
         $uris = $uridb->QueryById($parentId);
         foreach ($uris as $newUri) {
             $url = $newUri->getUri();
 
-            $client = new GuzzleClient($url);
-            try {
-                $content = $client->get($url);
-            } catch (UnsuccessfulRequestException $ure) {
+            $firstSymbol = substr($url, 0, 1);
+            if ($firstSymbol === "#"
+                || $firstSymbol === '/'
+                || $firstSymbol === '?'
+                || $firstSymbol === '.') {
                 continue;
-                throw new Exception($ure->getMessage() . " Code: " . $ure->getCode() . " Http message: " . $ure->getHttpReason());
-            } catch (NotInitializedException $nie) {
-                continue;
-                throw new Exception("Client not initialized for some mysterious reason");
             }
 
+        $client = new GuzzleClient($url);
+        try {
+            $content = $client->get($url);
+        } catch (UnsuccessfulRequestException $ure) {
+            continue;
+            throw new Exception($ure->getMessage() . " Code: " . $ure->getCode() . " Http message: " . $ure->getHttpReason());
+        } catch (NotInitializedException $nie) {
+            continue;
+            throw new Exception("Client not initialized for some mysterious reason");
+        }
 
-            $parser = new UriParser($content);
 
-            $result1 = $parser->getResult();
-            $parentId = $newUri->getId();
+        $parser = new UriParser($content);
 
-            foreach ($result1 as $key => $item) {
-                if (substr($item, 0, 1) === "#") {
-                    unset($result1[$key]);
-                    continue;
-                }
-                if (substr($item, 0, 1) === "/") {
-                    unset($result1[$key]);
-                    continue;
-                }
-//
-            }
+        $result1 = $parser->getResult();
+        $parentId = $newUri->getId();
 
-            foreach ($result1 as $uri) {
-                $uridb->Add(new Uri($uri, null, $parentId));
-                parse($uridb, $parentId, $deep--);
-            }
+//            foreach ($result1 as $key => $item) {
+//                if (substr($item, 0, 1) === "#") {
+//                    unset($result1[$key]);
+//                    continue;
+//                }
+//                if (substr($item, 0, 1) === "/") {
+//                    unset($result1[$key]);
+//                    continue;
+//                }
+////
+//            }
+
+        foreach ($result1 as $uri) {
+            $uridb->Add(new Uri($uri, null, $parentId));
+            parse($uridb, $parentId, $deep -= 1);
         }
     }
+}
 
 //$url = "http://drs.ua/rus/registrars.html";
 //$url = "http://www.abc.edu-net.khb.ru/";
 
-    $client = new GuzzleClient($url);
-    try {
-        $content = $client->get($url);
-    } catch (UnsuccessfulRequestException $ure) {
-        throw new Exception($ure->getMessage() . " Code: " . $ure->getCode() . " Http message: " . $ure->getHttpReason());
-    } catch (NotInitializedException $nie) {
-        throw new Exception("Client not initialized for some mysterious reason");
-    }
+$client = new GuzzleClient($url);
+try {
+    $content = $client->get($url);
+} catch (UnsuccessfulRequestException $ure) {
+    throw new Exception($ure->getMessage() . " Code: " . $ure->getCode() . " Http message: " . $ure->getHttpReason());
+} catch (NotInitializedException $nie) {
+    throw new Exception("Client not initialized for some mysterious reason");
+}
 
-    $parser = new UriParser($content);
-    $result = $parser->getResult();
+$parser = new UriParser($content);
+$result = $parser->getResult();
 
-    foreach ($result as $key => $item) {
-        if (substr($item, 0, 1) === "#") {
-            unset($result[$key]);
-            continue;
-        }
-        if (substr($item, 0, 1) === "/") {
-            unset($result[$key]);
-            continue;
-        }
-    }
+//    foreach ($result as $key => $item) {
+//        $firstSymbol = substr($item, 0, 1);
+//        if ($firstSymbol === "#" || $firstSymbol === '/' || $firstSymbol === '?') {
+//            unset($result[$key]);
+//            continue;
+//        }
+//    }
 
-    $host = "localhost";
-    $port = 5432;
-    $dbname = "Url_parser";
-    $user = "postgres";
-    $password = "root";
-    $uridb = new UriDB($host, $port, $dbname, $user, $password);
+$host = "localhost";
+$port = 5432;
+$dbname = "Url_parser";
+$user = "postgres";
+$password = "root";
+$uridb = new UriDB($host, $port, $dbname, $user, $password);
 
 
-    $parent = $uridb->Add(new Uri($url));
+$parent = $uridb->Add(new Uri($url));
 
-    foreach ($result as $uri) {
-        $uridb->Add(new Uri($uri, null, $parent));
-    }
+foreach ($result as $uri) {
+    $uridb->Add(new Uri($uri, null, $parent));
+}
 
-    try {
-        parse($uridb, $parent, $deep);
-    } catch (Exception $e) {
-        echo "end";
-    }
+try {
+    parse($uridb, $parent, $deep);
+} catch (Exception $e) {
+    echo "end";
+}
 
-    $dbresult = $uridb->GetAllUris();
+$dbresult = $uridb->GetAllUris();
 
 
-    echo Renderer::render('uris', ['uris' => $dbresult]);
+echo Renderer::render('uris', ['uris' => $dbresult]);
 
 
 }
