@@ -11,7 +11,7 @@ if (isset($_REQUEST["string"])) {
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    $arr = ["esse"=> $string, 'fio' => $fio];
+    $arr = ["esse" => $string, 'fio' => $fio];
 
     $data = json_encode($arr);
 //    var_dump($data);
@@ -29,10 +29,16 @@ if (isset($_REQUEST["string"])) {
 
     $resp = curl_exec($curl);
     curl_close($curl);
-//var_dump($resp);
-    if ($resp == True) {
-        echo "Успешно отправлено!";
-    } else echo " ошибка отправления ";
+    $decodedResp = json_decode($resp);
+    if ($decodedResp == null) {
+        echo " ошибка подключения ";
+    } else {
+        $decodedResp = json_decode($resp);
+        foreach ($decodedResp as $key => $value) {
+            echo $key . ' = ' . $value;
+        }
+    }
+
+
 }
-?>
 
